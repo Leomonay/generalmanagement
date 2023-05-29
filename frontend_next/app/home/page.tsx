@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <h1 className="mb-5">Home</h1>
+      <h1 className="mb-5">Por el momento, no tienes reservas</h1>
     </>
   );
 }
