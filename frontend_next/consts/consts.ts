@@ -9,3 +9,8 @@ export const labels = {
 };
 
 export const lang = "esp";
+export const status = {
+  unlogged: "unlogged",
+  user: "user",
+  admin: "admin",
+};

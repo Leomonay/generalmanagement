@@ -1,4 +1,4 @@
-const url = "http://localhost:3001/v1";
+import { baseUrl as url } from "@/appConfig";
 
 export function decodeJwt(token) {
   const parts = token.split(".");

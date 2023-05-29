@@ -1,48 +1,57 @@
 "use client";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
-import { decodeJwt, requests } from "@/utils";
+import { useEffect, useState } from "react";
+import { decodeJwt } from "@/utils";
 import { labels, lang } from "@/consts/consts";
 import Alert from "./ErrorAlert";
+import { RootState } from "@/redux/store";
+import { setUserData } from "@/redux/reducers/dataReducer";
+import { useCheckTokenMutation } from "@/redux/services/userApi";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const { user } = useSelector((state: RootState) => state.data);
+  const [checkToken, result] = useCheckTokenMutation();
+  const [loginError, setLoginError] = useState("");
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   function handleError() {
-    console.log("Login Failed");
+    setLoginError("Credenciales incorrectas");
   }
+
+  useEffect(() => {
+    if (result.data?.token) {
+      const data = decodeJwt(result.data.token);
+      const userData = data.payload;
+      if (userData.email) {
+        dispatch(setUserData(userData));
+        router.push("/home");
+      }
+    }
+  }, [result]);
 
   async function handleSuccess(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) {
-      setError(labels.NoGoogleCredentials[lang]);
+      setLoginError(labels.NoGoogleCredentials[lang]);
     } else {
-      const response = await requests.post(
-        "/auth",
-        {},
-        credentialResponse.credential
-      );
-      if (response.error) {
-        setError(response.error);
-      } else {
-        const { payload } = decodeJwt(response.token);
-        setEmail(payload.email);
-      }
+      await checkToken({
+        token: credentialResponse.credential,
+      });
     }
   }
 
   return (
-    <div className="py-5 w-fit mx-auto" onClick={() => setError("")}>
-      {email ? (
-        `Se ha iniciado sesión con el email ${email}`
-      ) : (
+    <div className="py-5 w-fit mx-auto" onClick={() => setLoginError("")}>
+      {!user.email && (
         <GoogleLogin
           useOneTap
           onError={handleError}
           onSuccess={handleSuccess}
         />
       )}
-      {error && <Alert alertType="error" message={error} />}
+      {loginError && <Alert alertType="error" message={loginError} />}
     </div>
   );
 }
