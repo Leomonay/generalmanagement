@@ -25,7 +25,7 @@ function decodeJwt(token) {
 async function login(req, res) {
   try {
     // checks for a token
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.split(" ")[1];
     let { email, password } = req.body;
     let user = null;
     // if token, search user by token email
@@ -52,7 +52,8 @@ async function login(req, res) {
     );
     res.status(200).send({ token: newToken });
   } catch (e) {
-    console.log(e.message);
+    // console.log(e.message);
+    console.log(e);
     res.status(400).send({ error: e.message });
   }
 }
